@@ -84,6 +84,11 @@ This PRP aligns to Feature 08 criteria in EVALUATION.md and follows USER_GUIDE b
 
 1. Verify filter/search for 1000 todos completes in < 100ms.
 
+### Integration Tests
+
+1. Search/filter state composition applies AND logic consistently.
+2. Priority and tag filter interactions preserve expected result set.
+
 ### Unit Tests
 
 1. Case-insensitive text matcher.

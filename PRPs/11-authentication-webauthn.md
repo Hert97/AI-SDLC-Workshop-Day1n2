@@ -100,18 +100,18 @@ counter: authenticator.counter ?? 0
 4. Protected routes redirect when unauthenticated.
 5. Login page redirects if already authenticated.
 
-### Unit Tests
-
-1. JWT session create/verify logic.
-2. Cookie option behavior by environment.
-3. Counter fallback handling (`?? 0`).
-
 ### Integration Tests
 
 1. Register options/verify flow.
 2. Login options/verify flow.
 3. `/api/auth/me` session resolution.
 4. Logout invalidates session.
+
+### Unit Tests
+
+1. JWT session create/verify logic.
+2. Cookie option behavior by environment.
+3. Counter fallback handling (`?? 0`).
 
 ## Implementation Checklist
 

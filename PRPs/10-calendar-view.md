@@ -68,6 +68,11 @@ This PRP aligns to Feature 10 criteria in EVALUATION.md and user-facing expectat
 5. Holiday appears on correct day.
 6. Clicking day opens modal.
 
+### Integration Tests
+
+1. `GET /api/holidays` returns expected shape and date values.
+2. Todo-to-day mapping uses Singapore date semantics.
+
 ### Unit Tests
 
 1. Calendar grid generation for month boundaries.

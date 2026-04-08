@@ -1,0 +1,48 @@
+# dependencies
+todo-app/node_modules/
+
+# next.js build output
+todo-app/.next/
+todo-app/out/
+
+# production
+todo-app/dist/
+todo-app/build/
+
+# runtime data
+todo-app/todos.db
+todo-app/*.db
+todo-app/*.sqlite
+todo-app/*.sqlite3
+
+# logs
+todo-app/logs/
+todo-app/*.log
+todo-app/npm-debug.log*
+todo-app/yarn-debug.log*
+todo-app/yarn-error.log*
+todo-app/pnpm-debug.log*
+
+# testing
+todo-app/coverage/
+todo-app/playwright-report/
+todo-app/test-results/
+
+# environment variables
+todo-app/.env
+todo-app/.env.local
+todo-app/.env.development.local
+todo-app/.env.test.local
+todo-app/.env.production.local
+
+# editor and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# TypeScript
+todo-app/*.tsbuildinfo
+
+# miscellaneous
+*.pem

@@ -71,7 +71,7 @@ When a recurring todo is completed:
 3. Recurring badge on todo item with pattern label.
 4. Option to disable recurrence for existing todo.
 
-## Error Handling
+## Validation and Error Handling
 
 1. Return `422` for invalid recurrence payload.
 2. Return clear error when recurring todo is missing due date.
@@ -94,6 +94,12 @@ When a recurring todo is completed:
 3. Complete recurring todo and verify next instance creation.
 4. Verify next instance due date correctness.
 5. Verify inherited metadata on next instance.
+
+### Integration Tests
+
+1. API validation for recurring fields.
+2. Completion endpoint/path creates next instance.
+3. Inherited metadata persistence verification.
 
 ### Unit Tests
 

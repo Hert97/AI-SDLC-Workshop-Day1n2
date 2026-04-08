@@ -94,6 +94,12 @@ interface TodoExportPayload {
 2. Import endpoint validates and persists correctly.
 3. Import endpoint returns detailed success counts.
 
+### Unit Tests
+
+1. ID remapping logic.
+2. JSON schema/shape validation.
+3. Tag conflict resolution behavior.
+
 ## Implementation Checklist
 
 - [ ] `GET /api/todos/export` implemented
