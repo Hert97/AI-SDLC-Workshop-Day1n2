@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateRegistrationOptions } from '@simplewebauthn/server';
+import type { AuthenticatorTransportFuture } from '@simplewebauthn/types';
 import { userDB, authenticatorDB } from '@/lib/db';
 import { cookies } from 'next/headers';
 
@@ -21,7 +22,9 @@ export async function POST(request: NextRequest) {
     userName: user.username,
     excludeCredentials: authenticators.map((a) => ({
       id: a.credential_id,
-      transports: a.transports ? (JSON.parse(a.transports) as string[]) : [],
+      transports: a.transports
+        ? (JSON.parse(a.transports) as AuthenticatorTransportFuture[])
+        : [],
     })),
     authenticatorSelection: { residentKey: 'preferred', userVerification: 'preferred' },
   });

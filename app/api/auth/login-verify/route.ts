@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
       requireUserVerification: false,
       credential: {
         id: authenticator.credential_id,
-        publicKey: authenticator.credential_public_key,
+        publicKey: new Uint8Array(authenticator.credential_public_key),
         counter: authenticator.counter ?? 0,
       },
     });

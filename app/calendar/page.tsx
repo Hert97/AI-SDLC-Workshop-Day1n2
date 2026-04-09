@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { Suspense, useState, useEffect, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import type { Todo } from '@/lib/db';
 import { getSingaporeNow, formatDateKey, getTodayKey } from '@/lib/timezone';
@@ -38,7 +38,7 @@ function buildWeeks(year: number, month: number): Date[][] {
   return weeks;
 }
 
-export default function CalendarPage() {
+function CalendarPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -189,5 +189,13 @@ export default function CalendarPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function CalendarPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-gray-500">Loading...</div>}>
+      <CalendarPageContent />
+    </Suspense>
   );
 }
