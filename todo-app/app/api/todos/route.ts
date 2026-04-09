@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
-import { todoDB } from '@/lib/db';
+import { getTodoTags, todoDB } from '@/lib/db';
 import { fromSingaporeLocalString, isAtLeastOneMinuteInFuture } from '@/lib/timezone';
 
 export async function GET() {
@@ -9,7 +9,10 @@ export async function GET() {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
   }
 
-  const todos = todoDB.listByUser(session.userId);
+  const todos = todoDB.listByUser(session.userId).map((todo) => ({
+    ...todo,
+    tag_ids: getTodoTags(todo.id),
+  }));
   return NextResponse.json({ data: todos });
 }
 

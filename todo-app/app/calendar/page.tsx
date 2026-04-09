@@ -1,15 +1,16 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
+import { AppHeader } from '@/app/components/AppHeader';
 import type { Holiday, Todo } from '@/lib/db';
+import { formatSingaporeDate, getSingaporeNow } from '@/lib/timezone';
 
 function toMonthKey(date: Date): string {
-  return date.toISOString().slice(0, 7);
+  return formatSingaporeDate(date, 'yyyy-MM');
 }
 
 export default function CalendarPage() {
-  const [month, setMonth] = useState(() => new Date());
+  const [month, setMonth] = useState(() => getSingaporeNow());
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [todos, setTodos] = useState<Todo[]>([]);
 
@@ -43,46 +44,107 @@ export default function CalendarPage() {
     return rows;
   }, [month]);
 
-  const holidayMap = new Map(holidays.map((h) => [h.holiday_date, h.name]));
+  const holidayMap = useMemo(() => new Map(holidays.map((holiday) => [holiday.holiday_date, holiday.name])), [holidays]);
+  const singaporeToday = getSingaporeNow();
+  const todayKey = formatSingaporeDate(singaporeToday, 'yyyy-MM-dd');
+  const monthLabel = month.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+  const monthTodoCount = todos.filter((todo) => todo.due_date?.startsWith(toMonthKey(month))).length;
+
+  async function logout() {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    window.location.href = '/login';
+  }
 
   return (
-    <main style={{ maxWidth: 1000, margin: '0 auto', padding: 24 }}>
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <h1>Calendar</h1>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <Link href="/">Back to Todos</Link>
-          <button onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))}>Prev</button>
-          <button onClick={() => setMonth(new Date())}>Today</button>
-          <button onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))}>Next</button>
+    <main className="app-shell">
+      <AppHeader
+        currentPage="calendar"
+        eyebrow="Planning horizon"
+        title="Calendar"
+        description="Scan your month, public holidays, and due tasks in one place."
+        onLogout={logout}
+      />
+
+      <section className="panel hero-card panel-soft">
+        <div>
+          <span className="eyebrow">Month overview</span>
+          <h2 className="hero-title">{monthLabel}</h2>
+          <p className="hero-text">Use the calendar to spot overloaded days, Singapore holidays, and the shape of your recurring schedule.</p>
         </div>
-      </header>
 
-      <h2>{month.toLocaleString('en-US', { month: 'long', year: 'numeric' })}</h2>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 8 }}>
-        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
-          <strong key={d} style={{ textAlign: 'center' }}>{d}</strong>
-        ))}
+        <div className="stats-grid">
+          <article className="stat-card">
+            <p className="stat-label">Tasks this month</p>
+            <p className="stat-value">{monthTodoCount}</p>
+            <p className="muted-copy">Due dates landing in the current grid window.</p>
+          </article>
+          <article className="stat-card">
+            <p className="stat-label">Holidays</p>
+            <p className="stat-value">{holidays.length}</p>
+            <p className="muted-copy">Singapore public holidays returned by the API.</p>
+          </article>
+          <article className="stat-card">
+            <p className="stat-label">Today</p>
+            <p className="stat-value">{singaporeToday.getDate()}</p>
+            <p className="muted-copy">Jump back anytime to re-center the month view.</p>
+          </article>
+        </div>
+      </section>
 
-        {days.map((day) => {
-          const key = day.toISOString().slice(0, 10);
-          const dayTodos = todos.filter((t) => t.due_date && t.due_date.slice(0, 10) === key);
-          const holidayName = holidayMap.get(key);
-          const isCurrentMonth = day.getMonth() === month.getMonth();
+      <section className="panel calendar-panel">
+        <div className="calendar-toolbar">
+          <div>
+            <span className="eyebrow">Month switcher</span>
+            <h2 className="section-title">{monthLabel}</h2>
+          </div>
+          <div className="button-row">
+            <button className="secondary-button" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))} type="button">
+              Prev
+            </button>
+            <button className="primary-button" onClick={() => setMonth(new Date())} type="button">
+              Today
+            </button>
+            <button className="secondary-button" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))} type="button">
+              Next
+            </button>
+          </div>
+        </div>
 
-          return (
-            <article key={key} style={{ minHeight: 110, padding: 8, borderRadius: 10, background: isCurrentMonth ? 'var(--surface)' : 'var(--surface-2)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <strong>{day.getDate()}</strong>
-                {dayTodos.length > 0 ? <span>{dayTodos.length}</span> : null}
-              </div>
-              {holidayName ? <p style={{ margin: '6px 0', color: '#a14100', fontSize: 12 }}>{holidayName}</p> : null}
-              {dayTodos.slice(0, 2).map((todo) => (
-                <p key={todo.id} style={{ margin: '4px 0', fontSize: 12 }}>{todo.title}</p>
-              ))}
-            </article>
-          );
-        })}
-      </div>
+        <div className="weekday-grid">
+          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((dayName) => (
+            <strong className="weekday-label" key={dayName}>
+              {dayName}
+            </strong>
+          ))}
+        </div>
+
+        <div className="calendar-grid">
+          {days.map((day) => {
+            const key = day.toISOString().slice(0, 10);
+            const dayTodos = todos.filter((todo) => todo.due_date && todo.due_date.slice(0, 10) === key);
+            const holidayName = holidayMap.get(key);
+            const isCurrentMonth = day.getMonth() === month.getMonth();
+            const isToday = key === todayKey;
+
+            return (
+              <article className={`calendar-day${!isCurrentMonth ? ' calendar-day-muted' : ''}${isToday ? ' calendar-day-today' : ''}`} key={key}>
+                <div className="day-head">
+                  <strong>{day.getDate()}</strong>
+                  {dayTodos.length > 0 ? <span className="day-count">{dayTodos.length}</span> : null}
+                </div>
+                {holidayName ? <p className="day-holiday">{holidayName}</p> : null}
+                <div className="day-events">
+                  {dayTodos.slice(0, 3).map((todo) => (
+                    <p className="day-event" key={todo.id}>
+                      {todo.title}
+                    </p>
+                  ))}
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      </section>
     </main>
   );
 }

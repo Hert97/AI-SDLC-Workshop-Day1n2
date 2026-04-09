@@ -1,7 +1,21 @@
 'use client';
 
+import type { FormEvent } from 'react';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+
+async function readJson<T>(response: Response): Promise<T | null> {
+  const text = await response.text();
+  if (!text) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    return null;
+  }
+}
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
@@ -21,8 +35,8 @@ export default function LoginPage() {
       });
 
       if (!optionResponse.ok) {
-        const payload = (await optionResponse.json()) as { error?: string };
-        throw new Error(payload.error ?? `Failed to fetch ${mode} options`);
+        const payload = await readJson<{ error?: string }>(optionResponse);
+        throw new Error(payload?.error ?? `Failed to fetch ${mode} options`);
       }
 
       const verifyResponse = await fetch(`/api/auth/${mode}-verify`, {
@@ -32,8 +46,8 @@ export default function LoginPage() {
       });
 
       if (!verifyResponse.ok) {
-        const payload = (await verifyResponse.json()) as { error?: string };
-        throw new Error(payload.error ?? `${mode} verification failed`);
+        const payload = await readJson<{ error?: string }>(verifyResponse);
+        throw new Error(payload?.error ?? `${mode} verification failed`);
       }
 
       router.replace('/');
@@ -44,41 +58,61 @@ export default function LoginPage() {
     }
   }
 
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    void auth('login');
+  }
+
   return (
-    <main style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', padding: 24 }}>
-      <section
-        style={{
-          width: '100%',
-          maxWidth: 520,
-          background: 'var(--surface)',
-          borderRadius: 18,
-          padding: 24,
-          boxShadow: '0 20px 45px rgba(36, 62, 35, 0.12)',
-        }}
-      >
-        <h1 style={{ marginTop: 0 }}>Passkey Login</h1>
-        <p style={{ color: 'var(--muted)' }}>Register once, then login using your username.</p>
+    <main className="login-shell">
+      <div className="login-grid">
+        <section className="panel panel-soft login-hero">
+          <span className="eyebrow">Todo App</span>
+          <h1>Sign in with your passkey.</h1>
+          <p className="hero-text">
+            Use your username, then let your device handle the secure biometric or PIN step. The layout follows a calm,
+            auth-first flow similar to the deployed reference.
+          </p>
 
-        <label htmlFor="username">Username</label>
-        <input
-          id="username"
-          type="text"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          style={{ width: '100%', padding: 12, marginTop: 6, marginBottom: 16, borderRadius: 8, border: '1px solid #d2dcc4' }}
-        />
+          <ul className="feature-list">
+            <li>No passwords to remember.</li>
+            <li>Recurring tasks, reminders, exports, and calendar views stay in one workspace.</li>
+            <li>Authentication is protected by device-backed passkeys and server-side sessions.</li>
+          </ul>
+        </section>
 
-        {error ? <p style={{ color: 'var(--danger)' }}>{error}</p> : null}
+        <section className="panel panel-elevated auth-card">
+          <span className="eyebrow">Passkey access</span>
+          <h2>Username first, then continue with your device.</h2>
+          <p className="helper-copy">Press Enter to sign in, or register once if this is a new account.</p>
 
-        <div style={{ display: 'flex', gap: 10 }}>
-          <button onClick={() => auth('register')} disabled={loading || !username.trim()} style={{ padding: '10px 14px', borderRadius: 8 }}>
-            Register
-          </button>
-          <button onClick={() => auth('login')} disabled={loading || !username.trim()} style={{ padding: '10px 14px', borderRadius: 8 }}>
-            Login
-          </button>
-        </div>
-      </section>
+          <form onSubmit={handleSubmit}>
+            <label className="field-label" htmlFor="username">
+              Username
+              <input
+                className="control"
+                id="username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="e.g. yagami"
+                autoComplete="username"
+              />
+            </label>
+
+            {error ? <p className="error-banner">{error}</p> : null}
+
+            <div className="button-row">
+              <button className="primary-button" disabled={loading || !username.trim()} type="submit">
+                {loading ? 'Working...' : 'Sign in with Passkey'}
+              </button>
+              <button className="secondary-button" disabled={loading || !username.trim()} onClick={() => void auth('register')} type="button">
+                Register
+              </button>
+            </div>
+          </form>
+        </section>
+      </div>
     </main>
   );
 }
