@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { title, due_date, priority, tags } = body;
+  const { title, due_date, priority, tags, is_recurring, recurrence_pattern, reminder_minutes } = body;
 
   if (!title) {
     return NextResponse.json({ error: 'Title is required' }, { status: 400 });
@@ -31,7 +31,9 @@ export async function POST(request: NextRequest) {
     title,
     due_date,
     priority,
-    is_recurring: 0,
+    is_recurring: is_recurring ? 1 : 0,
+    recurrence_pattern: is_recurring ? recurrence_pattern : undefined,
+    reminder_minutes: reminder_minutes ?? undefined,
     created_at: getSingaporeNow().toISOString(),
   }, tags);
 

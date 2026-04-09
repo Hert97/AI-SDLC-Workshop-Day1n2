@@ -3,8 +3,35 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Todo } from '@/lib/db';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isSameDay, addMonths, subMonths } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isSameDay, addMonths, subMonths, addDays, addWeeks, addYears } from 'date-fns';
 import { getSingaporeNow } from '@/lib/timezone';
+import { RecurrencePattern } from '@/lib/db';
+
+function expandRecurringTodo(todo: Todo, monthStart: Date, monthEnd: Date): Date[] {
+  if (!todo.is_recurring || !todo.recurrence_pattern || !todo.due_date) return [];
+  const origin = new Date(todo.due_date);
+  const dates: Date[] = [];
+  let cursor = origin;
+  // Step back to before month start so we catch occurrences that land inside
+  // then walk forward and collect all that fall within [monthStart, monthEnd].
+  // Cap iterations to avoid infinite loops.
+  let iterations = 0;
+  const maxIterations = 3650;
+  while (cursor <= monthEnd && iterations < maxIterations) {
+    if (cursor >= monthStart && !isSameDay(cursor, origin)) {
+      dates.push(cursor);
+    }
+    switch (todo.recurrence_pattern as RecurrencePattern) {
+      case 'daily':   cursor = addDays(cursor, 1); break;
+      case 'weekly':  cursor = addWeeks(cursor, 1); break;
+      case 'monthly': cursor = new Date(cursor.getFullYear(), cursor.getMonth() + 1, cursor.getDate()); break;
+      case 'yearly':  cursor = addYears(cursor, 1); break;
+      default:        cursor = monthEnd; // stop
+    }
+    iterations++;
+  }
+  return dates;
+}
 
 export default function CalendarPage() {
   const [todos, setTodos] = useState<Todo[]>([]);
@@ -164,7 +191,16 @@ export default function CalendarPage() {
               <div key={`empty-${i}`} style={{ borderRight: '1px solid #2d4160', borderBottom: '1px solid #2d4160' }} className="h-28" />
             ))}
             {days.map(day => {
-              const dayTodos = todos.filter(t => t.due_date && !t.completed && isSameDay(new Date(t.due_date), day));
+              const dayTodos = todos.filter(t => {
+                if (!t.due_date || t.completed) return false;
+                if (isSameDay(new Date(t.due_date), day)) return true;
+                // Show recurring occurrences
+                if (t.is_recurring && t.recurrence_pattern) {
+                  const occ = expandRecurringTodo(t, day, day);
+                  return occ.some(d => isSameDay(d, day));
+                }
+                return false;
+              });
               const holiday = holidays.find(h => {
                 const hDate = new Date(h.date);
                 if (h.recurring) {
@@ -215,6 +251,7 @@ export default function CalendarPage() {
                     {dayTodos.slice(0, 3).map(todo => (
                       <div key={todo.id} className="flex items-center gap-1 text-xs truncate leading-tight">
                         <span style={{ width: '6px', height: '6px', borderRadius: '50%', flexShrink: 0, backgroundColor: priorityDotColor[todo.priority] || '#94a3b8' }} />
+                        {todo.is_recurring ? <span style={{ color: '#a78bfa', flexShrink: 0 }}>🔄</span> : null}
                         <span className="truncate" style={{ color: '#cbd5e1' }}>{todo.title}</span>
                       </div>
                     ))}
@@ -241,6 +278,10 @@ export default function CalendarPage() {
               <span className="text-xs text-slate-400">{label}</span>
             </div>
           ))}
+          <div className="flex items-center gap-2">
+            <span style={{ color: '#a78bfa' }}>🔄</span>
+            <span className="text-xs text-slate-400">Recurring</span>
+          </div>
         </div>
       </main>
 

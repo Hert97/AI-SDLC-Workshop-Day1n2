@@ -189,6 +189,113 @@ function TagManagerModal({ tags, onTagCreate, onTagUpdate, onTagDelete, onClose 
   );
 }
 
+// ─── SaveAsTemplateModal ────────────────────────────────────────────────────
+
+function SaveAsTemplateModal({ title, priority, isRecurring, recurrencePattern, reminderMinutes, onSave, onClose }: {
+  title: string;
+  priority: Priority;
+  isRecurring: boolean;
+  recurrencePattern: RecurrencePattern;
+  reminderMinutes?: number;
+  onSave: (data: Omit<Template, 'id' | 'user_id'>) => Promise<void>;
+  onClose: () => void;
+}) {
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [category, setCategory] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    if (!name.trim()) return;
+    setSaving(true);
+    try {
+      await onSave({
+        name: name.trim(),
+        title_template: title,
+        description: description.trim() || undefined,
+        category: category.trim() || undefined,
+        priority,
+        is_recurring: isRecurring ? 1 : 0,
+        recurrence_pattern: isRecurring ? recurrencePattern : undefined,
+        reminder_minutes: reminderMinutes,
+      });
+      window.alert('Template saved successfully!');
+      onClose();
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+      <div style={{ backgroundColor: '#1e2d3d', border: '1px solid #2d4160', borderRadius: '12px', width: '100%', maxWidth: '400px', padding: '28px' }}>
+        <h2 className="text-xl font-bold text-white mb-5">Save as Template</h2>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm text-slate-300 mb-1">Template Name *</label>
+            <input
+              type="text"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              placeholder="e.g., Weekly Meeting"
+              style={{ backgroundColor: '#243447', border: '1px solid #2d4160' }}
+              className="w-full px-3 py-2 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500"
+              autoFocus
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-slate-300 mb-1">Description (optional)</label>
+            <textarea
+              value={description}
+              onChange={e => setDescription(e.target.value)}
+              placeholder="Brief description of the template"
+              rows={3}
+              style={{ backgroundColor: '#243447', border: '1px solid #2d4160', resize: 'vertical' }}
+              className="w-full px-3 py-2 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-slate-300 mb-1">Category (optional)</label>
+            <input
+              type="text"
+              value={category}
+              onChange={e => setCategory(e.target.value)}
+              placeholder="e.g., Work, Personal, Health"
+              style={{ backgroundColor: '#243447', border: '1px solid #2d4160' }}
+              className="w-full px-3 py-2 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500"
+            />
+          </div>
+          {/* Summary */}
+          <div style={{ backgroundColor: '#243447', border: '1px solid #2d4160', borderRadius: '8px' }} className="p-3 text-sm">
+            <p className="text-slate-400 mb-2">Template will save:</p>
+            <ul className="space-y-1 text-slate-300 list-disc list-inside">
+              <li>Title: {title}</li>
+              <li>Priority: {priority}</li>
+              {isRecurring && <li>Recurrence: {recurrencePattern}</li>}
+              {reminderMinutes && <li>Reminder: {REMINDER_LABELS[reminderMinutes] ?? `${reminderMinutes}m`}</li>}
+            </ul>
+          </div>
+        </div>
+        <div className="flex gap-3 mt-6">
+          <button
+            onClick={handleSave}
+            disabled={!name.trim() || saving}
+            style={{ backgroundColor: '#059669' }}
+            className="flex-1 py-2 text-white rounded-lg font-semibold hover:opacity-90 disabled:opacity-50">
+            {saving ? 'Saving...' : 'Save Template'}
+          </button>
+          <button
+            onClick={onClose}
+            style={{ backgroundColor: '#374151', border: '1px solid #4b5563' }}
+            className="px-5 py-2 text-white rounded-lg hover:opacity-90">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── TemplateManagerModal ─────────────────────────────────────────────────────
 
 function TemplateManagerModal({ templates, onUseTemplate, onCreateTemplate, onDeleteTemplate, onClose }: {
@@ -673,6 +780,7 @@ export default function HomePage() {
   const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
   const [showTagManager, setShowTagManager] = useState(false);
   const [showTemplateManager, setShowTemplateManager] = useState(false);
+  const [showSaveTemplateModal, setShowSaveTemplateModal] = useState(false);
   const [showDataModal, setShowDataModal] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -848,17 +956,8 @@ export default function HomePage() {
     setNewReminderMinutes(template.reminder_minutes ?? undefined);
   };
 
-  const handleSaveAsTemplate = async () => {
-    const name = window.prompt('Template name:', newTitle.trim());
-    if (!name?.trim()) return;
-    await handleCreateTemplate({
-      name: name.trim(),
-      title_template: newTitle.trim(),
-      priority: newPriority,
-      is_recurring: newIsRecurring ? 1 : 0,
-      recurrence_pattern: newIsRecurring ? newRecurrencePattern : undefined,
-      reminder_minutes: newReminderMinutes,
-    });
+  const handleSaveAsTemplate = () => {
+    setShowSaveTemplateModal(true);
   };
 
   const handleUseTemplate = async (template: Template): Promise<void> => {
@@ -923,6 +1022,17 @@ export default function HomePage() {
       {/* Modals */}
       {showTagManager && <TagManagerModal tags={tags} onTagCreate={handleTagCreate} onTagUpdate={handleTagUpdate} onTagDelete={handleTagDelete} onClose={() => setShowTagManager(false)} />}
       {showTemplateManager && <TemplateManagerModal templates={templates} onUseTemplate={handleUseTemplate} onCreateTemplate={handleCreateTemplate} onDeleteTemplate={handleDeleteTemplate} onClose={() => setShowTemplateManager(false)} />}
+      {showSaveTemplateModal && (
+        <SaveAsTemplateModal
+          title={newTitle}
+          priority={newPriority}
+          isRecurring={newIsRecurring}
+          recurrencePattern={newRecurrencePattern}
+          reminderMinutes={newReminderMinutes}
+          onSave={handleCreateTemplate}
+          onClose={() => setShowSaveTemplateModal(false)}
+        />
+      )}
       {showDataModal && <DataModal onClose={() => setShowDataModal(false)} onImported={async () => { const r = await fetch('/api/todos'); if (r.ok) { const d = await r.json(); setTodos(d.map((t: Todo) => ({ ...t, subtasks: t.subtasks || [] }))); } }} />}
       {editingTodo && <EditTodoModal todo={editingTodo} tags={tags} onSave={handleSaveTodo} onClose={() => setEditingTodo(null)} />}
 
