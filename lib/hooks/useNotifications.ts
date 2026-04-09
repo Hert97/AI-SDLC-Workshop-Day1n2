@@ -5,13 +5,9 @@ import type { Todo } from '@/lib/db';
 import { formatSingaporeDate } from '@/lib/timezone';
 
 export function useNotifications(userId: number | null) {
-  const [permission, setPermission] = useState<NotificationPermission>('default');
-
-  useEffect(() => {
-    if (typeof Notification !== 'undefined') {
-      setPermission(Notification.permission);
-    }
-  }, []);
+  const [permission, setPermission] = useState<NotificationPermission>(
+    () => (typeof Notification !== 'undefined' ? Notification.permission : 'default'),
+  );
 
   const requestPermission = async () => {
     if (typeof Notification === 'undefined') return;

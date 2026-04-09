@@ -1,0 +1,42 @@
+
+Running 7 tests using 1 worker
+
+[1A[2K[1/7] [chromium] › tests\01-authentication.spec.ts:7:7 › Authentication - WebAuthn/Passkeys › login page is accessible and shows register/login buttons
+[1A[2K[2/7] [chromium] › tests\01-authentication.spec.ts:14:7 › Authentication - WebAuthn/Passkeys › unauthenticated user is redirected from / to /login
+[1A[2K[3/7] [chromium] › tests\01-authentication.spec.ts:19:7 › Authentication - WebAuthn/Passkeys › unauthenticated user is redirected from /calendar to /login
+[1A[2K[4/7] [chromium] › tests\01-authentication.spec.ts:24:7 › Authentication - WebAuthn/Passkeys › user can register with a passkey and reach the main page
+[1A[2K[5/7] [chromium] › tests\01-authentication.spec.ts:43:7 › Authentication - WebAuthn/Passkeys › authenticated user is redirected away from /login to /
+[1A[2K[6/7] [chromium] › tests\01-authentication.spec.ts:49:7 › Authentication - WebAuthn/Passkeys › user can logout and is redirected to /login
+[1A[2K  1) [chromium] › tests\01-authentication.spec.ts:49:7 › Authentication - WebAuthn/Passkeys › user can logout and is redirected to /login 
+
+    [31mTest timeout of 60000ms exceeded.[39m
+
+    Error: page.click: Test timeout of 60000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('[data-testid="logout-button"]')[22m
+
+
+      49 |   test('user can logout and is redirected to /login', async ({ page }) => {
+      50 |     await registerUser(page, `test-logout-${Date.now()}`);
+    > 51 |     await page.click('[data-testid="logout-button"]');
+         |                ^
+      52 |     await expect(page).toHaveURL('/login');
+      53 |   });
+      54 |
+        at D:\Projects\Copilot\AI-SDLC-Workshop-Day1n2\tests\01-authentication.spec.ts:51:16
+
+    Error Context: test-results\01-authentication-Authenti-f4810--and-is-redirected-to-login-chromium\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\01-authentication-Authenti-f4810--and-is-redirected-to-login-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\01-authentication-Authenti-f4810--and-is-redirected-to-login-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[7/7] [chromium] › tests\01-authentication.spec.ts:55:7 › Authentication - WebAuthn/Passkeys › registering with an empty username shows error
+[1A[2K  1 failed
+    [chromium] › tests\01-authentication.spec.ts:49:7 › Authentication - WebAuthn/Passkeys › user can logout and is redirected to /login 
+  6 passed (1.2m)

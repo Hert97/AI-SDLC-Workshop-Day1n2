@@ -97,7 +97,7 @@ export default function LoginPage() {
           />
 
           {error && (
-            <p className="text-red-500 text-sm" role="alert">
+            <p className="text-red-500 text-sm" role="alert" data-testid="auth-error">
               {error}
             </p>
           )}

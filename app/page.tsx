@@ -356,7 +356,7 @@ export default function HomePage() {
     await fetchAll();
   }
 
-  async function useTemplate(templateId: number) {
+  async function applyTemplate(templateId: number) {
     const res = await fetch(`/api/templates/${templateId}/use`, { method: 'POST' });
     if (res.ok) { setShowTemplateModal(false); await fetchAll(); }
   }
@@ -758,7 +758,7 @@ export default function HomePage() {
                 <div className="flex items-center gap-2">
                   {templates.length > 0 && (
                     <select
-                      onChange={(e) => e.target.value && useTemplate(Number(e.target.value))}
+                      onChange={(e) => e.target.value && applyTemplate(Number(e.target.value))}
                       className="px-3 py-1 text-sm border rounded-lg bg-white dark:bg-gray-700 dark:text-white"
                       defaultValue=""
                       data-testid="use-template-select"
@@ -1089,7 +1089,7 @@ export default function HomePage() {
                       </div>
                     </div>
                     <div className="flex gap-2 shrink-0">
-                      <button onClick={() => useTemplate(t.id)} className="px-3 py-1 bg-blue-600 text-white rounded-lg text-xs hover:bg-blue-700" data-testid={`use-template-${t.id}`}>Use</button>
+                      <button onClick={() => applyTemplate(t.id)} className="px-3 py-1 bg-blue-600 text-white rounded-lg text-xs hover:bg-blue-700" data-testid={`use-template-${t.id}`}>Use</button>
                       <button onClick={() => deleteTemplate(t.id)} className="px-3 py-1 bg-red-500 text-white rounded-lg text-xs hover:bg-red-600" data-testid={`delete-template-${t.id}`}>Delete</button>
                     </div>
                   </div>
