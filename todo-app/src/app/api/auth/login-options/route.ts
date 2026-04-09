@@ -3,7 +3,10 @@ import { isoBase64URL } from '@simplewebauthn/server/helpers';
 import { generateAuthenticationOptions } from '@simplewebauthn/server';
 import db, { userDB } from '@/lib/db';
 
-const rpID = process.env.NODE_ENV === 'production' ? (process.env.RP_ID || 'your-domain.com') : 'localhost';
+function getRpID(request: NextRequest): string {
+  const host = request.headers.get('host') || 'localhost';
+  return process.env.RP_ID || host.split(':')[0];
+}
 
 export async function POST(request: NextRequest) {
   const { username } = await request.json();
@@ -18,6 +21,8 @@ export async function POST(request: NextRequest) {
   }
 
   const userAuthenticators = userDB.findAuthenticatorsByUserId(user.id);
+
+  const rpID = getRpID(request);
 
   const options = await generateAuthenticationOptions({
     rpID,

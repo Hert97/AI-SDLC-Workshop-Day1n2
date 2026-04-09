@@ -4,10 +4,16 @@ import { isoBase64URL } from '@simplewebauthn/server/helpers';
 import db, { userDB } from '@/lib/db';
 import { createSession } from '@/lib/auth';
 
-const rpID = process.env.NODE_ENV === 'production' ? (process.env.RP_ID || 'your-domain.com') : 'localhost';
-const origin = process.env.NODE_ENV === 'production' ? `https://${rpID}` : `http://${rpID}:3000`;
+function getRpConfig(request: NextRequest) {
+  const host = request.headers.get('host') || 'localhost';
+  const rpID = process.env.RP_ID || host.split(':')[0];
+  const proto = request.headers.get('x-forwarded-proto') || (rpID === 'localhost' ? 'http' : 'https');
+  const origin = `${proto}://${host}`;
+  return { rpID, origin };
+}
 
 export async function POST(request: NextRequest) {
+  const { rpID, origin } = getRpConfig(request);
   const body = await request.json();
   const { userId, cred } = body;
 
