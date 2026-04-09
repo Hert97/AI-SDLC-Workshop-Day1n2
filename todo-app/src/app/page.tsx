@@ -477,30 +477,18 @@ function DataModal({ onClose, onImported }: { onClose: () => void; onImported: (
       <div style={{ backgroundColor: '#243447', border: '1px solid #2d4160' }}
         className="rounded-xl shadow-2xl w-full max-w-md">
         <div className="p-5 border-b" style={{ borderColor: '#2d4160' }}>
-          <h2 className="text-xl font-bold text-white">📊 Data Management</h2>
+          <h2 className="text-xl font-bold text-white">� Import Todos</h2>
         </div>
-        <div className="p-5 space-y-6">
-          <div>
-            <p className="text-xs text-slate-400 uppercase font-semibold mb-3">Export Todos</p>
-            <div className="flex gap-3">
-              <a href="/api/todos/export?format=json" style={{ backgroundColor: '#3b82f6' }}
-                className="flex-1 py-2 text-white rounded-lg text-sm font-medium text-center hover:opacity-90">📄 JSON</a>
-              <a href="/api/todos/export?format=csv" style={{ backgroundColor: '#374151' }}
-                className="flex-1 py-2 text-white rounded-lg text-sm font-medium text-center hover:opacity-90">📊 CSV</a>
-            </div>
-          </div>
-          <div>
-            <p className="text-xs text-slate-400 uppercase font-semibold mb-3">Import Todos (JSON)</p>
-            <label style={{ backgroundColor: '#1e2d3d', border: '2px dashed #2d4160', cursor: 'pointer' }}
-              className="flex flex-col items-center justify-center w-full py-8 rounded-lg text-slate-400 text-sm hover:border-blue-500 transition-colors">
-              <span className="text-3xl mb-2">📁</span>
-              <span>{importing ? 'Importing...' : 'Click to select JSON file'}</span>
-              <input type="file" accept=".json" onChange={handleImport} className="hidden" disabled={importing} />
-            </label>
-            {message && (
-              <p className={`text-sm mt-2 ${message.includes('failed') ? 'text-red-400' : 'text-green-400'}`}>{message}</p>
-            )}
-          </div>
+        <div className="p-5">
+          <label style={{ backgroundColor: '#1e2d3d', border: '2px dashed #2d4160', cursor: 'pointer' }}
+            className="flex flex-col items-center justify-center w-full py-8 rounded-lg text-slate-400 text-sm hover:border-blue-500 transition-colors">
+            <span className="text-3xl mb-2">📁</span>
+            <span>{importing ? 'Importing...' : 'Click to select JSON file'}</span>
+            <input type="file" accept=".json" onChange={handleImport} className="hidden" disabled={importing} />
+          </label>
+          {message && (
+            <p className={`text-sm mt-2 ${message.includes('failed') ? 'text-red-400' : 'text-green-400'}`}>{message}</p>
+          )}
         </div>
         <div className="p-4 border-t" style={{ borderColor: '#2d4160' }}>
           <button onClick={onClose} style={{ backgroundColor: '#374151' }}
@@ -781,6 +769,7 @@ export default function HomePage() {
   const [showTagManager, setShowTagManager] = useState(false);
   const [showTemplateManager, setShowTemplateManager] = useState(false);
   const [showSaveTemplateModal, setShowSaveTemplateModal] = useState(false);
+  const [showDataDropdown, setShowDataDropdown] = useState(false);
   const [showDataModal, setShowDataModal] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -828,6 +817,7 @@ export default function HomePage() {
   // ── Handlers ──────────────────────────────────────────────────────────────
 
   const handleEnableNotifications = async () => {
+    if (notificationsEnabled) { setNotificationsEnabled(false); return; }
     if (!('Notification' in window)) { alert('Browser does not support notifications'); return; }
     const perm = await Notification.requestPermission();
     setNotificationsEnabled(perm === 'granted');
@@ -1044,11 +1034,39 @@ export default function HomePage() {
             {username && <p className="text-xs" style={{ color: '#60a5fa' }}>Welcome, {username}</p>}
           </div>
           <div className="flex items-center gap-2 flex-wrap justify-end">
-            <button onClick={() => setShowDataModal(true)}
-              style={{ backgroundColor: '#374151', border: '1px solid #4b5563' }}
-              className="px-3 py-1.5 text-white rounded-lg text-sm font-medium hover:opacity-90 flex items-center gap-1">
-              <span>⊞</span> Data
-            </button>
+            <div className="relative">
+              <button onClick={() => setShowDataDropdown(prev => !prev)}
+                style={{ backgroundColor: '#374151', border: '1px solid #4b5563' }}
+                className="px-3 py-1.5 text-white rounded-lg text-sm font-medium hover:opacity-90 flex items-center gap-1">
+                <span>⊞</span> Data
+              </button>
+              {showDataDropdown && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setShowDataDropdown(false)} />
+                  <div style={{ backgroundColor: '#243447', border: '1px solid #2d4160', zIndex: 50 }}
+                    className="absolute right-0 mt-1 rounded-lg shadow-xl min-w-[140px] overflow-hidden">
+                    <a href="/api/todos/export?format=json"
+                      onClick={() => setShowDataDropdown(false)}
+                      style={{ color: '#e2e8f0' }}
+                      className="block px-4 py-2.5 text-sm hover:bg-white/10 cursor-pointer">
+                      Export JSON
+                    </a>
+                    <a href="/api/todos/export?format=csv"
+                      onClick={() => setShowDataDropdown(false)}
+                      style={{ color: '#e2e8f0' }}
+                      className="block px-4 py-2.5 text-sm hover:bg-white/10 cursor-pointer">
+                      Export CSV
+                    </a>
+                    <button
+                      onClick={() => { setShowDataDropdown(false); setShowDataModal(true); }}
+                      style={{ color: '#e2e8f0' }}
+                      className="w-full text-left px-4 py-2.5 text-sm hover:bg-white/10">
+                      Import JSON
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
             <button onClick={() => router.push('/calendar')}
               style={{ backgroundColor: '#a855f7' }}
               className="px-3 py-1.5 text-white rounded-lg text-sm font-medium hover:opacity-90">
@@ -1060,9 +1078,10 @@ export default function HomePage() {
               <span>📋</span> Templates
             </button>
             <button onClick={handleEnableNotifications}
-              style={{ backgroundColor: notificationsEnabled ? '#15803d' : '#f59e0b' }}
+              title={notificationsEnabled ? 'Notifications On (click to disable)' : 'Enable Notifications'}
+              style={{ backgroundColor: notificationsEnabled ? '#f59e0b' : '#374151', border: '1px solid #4b5563' }}
               className="px-3 py-1.5 text-white rounded-lg text-sm font-medium hover:opacity-90">
-              🔔{notificationsEnabled ? ' On' : ''}
+              🔔
             </button>
             <button onClick={handleLogout}
               style={{ backgroundColor: '#374151', border: '1px solid #4b5563' }}
