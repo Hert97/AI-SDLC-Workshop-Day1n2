@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyRegistrationResponse } from '@simplewebauthn/server';
-import type { RegistrationResponseJSON } from '@simplewebauthn/types';
+import type { RegistrationResponseJSON } from '@simplewebauthn/server';
 import { authenticatorDB } from '@/lib/db';
 import { createSession } from '@/lib/auth';
 import { cookies } from 'next/headers';

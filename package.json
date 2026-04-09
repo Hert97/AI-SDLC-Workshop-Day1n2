@@ -8,6 +8,8 @@
     "start": "next start -p ${PORT:-3000}",
     "lint": "eslint .",
     "test": "playwright test",
+    "test:unit": "vitest run",
+    "test:unit:coverage": "vitest run --coverage",
     "test:ui": "playwright test --ui",
     "test:report": "playwright show-report",
     "db:seed-holidays": "tsx scripts/seed-holidays.ts"
@@ -15,10 +17,9 @@
   "dependencies": {
     "@simplewebauthn/browser": "^13.0.0",
     "@simplewebauthn/server": "^13.0.0",
-    "@simplewebauthn/types": "^12.0.0",
     "better-sqlite3": "^11.0.0",
     "jose": "^5.9.0",
-    "next": "15.3.0",
+    "next": "^15.5.15",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
@@ -29,8 +30,10 @@
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "@vitest/coverage-v8": "^4.1.4",
     "tailwindcss": "^4.0.0",
     "tsx": "^4.19.0",
-    "typescript": "^5.7.0"
+    "typescript": "^5.7.0",
+    "vitest": "^4.1.4"
   }
 }
